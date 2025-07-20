@@ -1,4 +1,4 @@
-fix: Resolve encoding and regex issues
+docs: Update PLAN.md and README.md for logging and error handling
 
-- Corrected a SyntaxError in `utils.py` related to an unterminated string literal in the regex pattern.
-- Added UTF-8 encoding configuration for stdout/stderr in `c_cleaner.py` to prevent UnicodeEncodeError on Windows.
+- Added a new step in PLAN.md for integrating logging and enhancing error handling.
+- Updated README.md to reflect the upcoming logging feature.
