@@ -1,6 +1,6 @@
-import os
 import sys
 import shutil
+from pathlib import Path
 from typing import List, Tuple
 
 try:
@@ -27,20 +27,19 @@ def interactive_delete(files_to_process: List[Tuple[str, int]]):
     print("\n开始交互式删除...")
     print("输入 'y' 删除, 'n' 或直接按 Enter 跳过, 'q' 退出。")
 
-    for i, (path, size) in enumerate(files_to_process, 1):
-        # A good practice check to see if the file still exists before prompting
-        if not os.path.exists(path):
+    for i, (path_str, size) in enumerate(files_to_process, 1):
+        path = Path(path_str)
+        if not path.exists():
             print(f"> 警告: 文件 '{path}' 已不存在，自动跳过。")
             continue
 
         formatted_size = format_size(size)
 
-        # Truncate path for a clean prompt
         prompt_prefix = f"[{i}] 删除 {formatted_size} 的文件 ''? (y/N/q): "
         available_width = terminal_width - len(prompt_prefix)
-        display_path = path
-        if len(path) > available_width and available_width > 15:
-            display_path = f"{path[:(available_width - 3)]}..."
+        display_path = str(path)
+        if len(display_path) > available_width and available_width > 15:
+            display_path = f"{display_path[:(available_width - 3)]}..."
         prompt = f"[{i}] 删除 {formatted_size} 的文件 '{display_path}'? (y/N/q): "
 
         try:
@@ -54,9 +53,9 @@ def interactive_delete(files_to_process: List[Tuple[str, int]]):
                 send2trash(path)
                 print("> 成功移至回收站。")
             except Exception as e:
-                print(f"> 错误：删除 '{os.path.basename(path)}' 失败。原因: {e}")
+                print(f"> 错误：删除 '{path.name}' 失败。原因: {e}")
         elif answer in ('q', 'quit'):
             print("> 已退出删除流程。")
             break
-        else:  # This covers 'n', 'no', or an empty string from pressing Enter
+        else:
             print("> 已跳过。")

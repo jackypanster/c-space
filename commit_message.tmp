@@ -1,0 +1,5 @@
+refactor: Improve code quality
+
+- Replace manual table formatting with the 'rich' library for better UI and simpler code.
+- Refactor all file path manipulations to use the modern 'pathlib' library instead of 'os.path'.
+- Centralize constants like the config filename into a single module.

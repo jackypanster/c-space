@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 # New modular imports
 from args import setup_parser
@@ -8,7 +9,7 @@ from display import display_results
 
 # Existing modular imports
 from scanner import get_excluded_dirs, scan_large_files
-from utils import parse_size
+from utils import parse_size, CONFIG_FILENAME
 from deleter import interactive_delete
 
 
@@ -37,7 +38,7 @@ def main():
 
     # --- 3. Exclusion Processing ---
     base_system_exclusions = get_excluded_dirs(scan_path)
-    user_exclusions = get_user_exclusions(args.exclude, '.cleaner_ignore')
+    user_exclusions = get_user_exclusions(args.exclude, CONFIG_FILENAME)
     excluded_dirs, validated_user_exclusions = process_exclusions(
         base_system_exclusions, user_exclusions
     )

@@ -1,5 +1,8 @@
 import re
 
+# --- Constants ---
+CONFIG_FILENAME = ".cleaner_ignore"
+
 # Windows-specific file attribute constants, used by the scanner
 FILE_ATTRIBUTE_HIDDEN = 0x02
 FILE_ATTRIBUTE_SYSTEM = 0x04
@@ -10,7 +13,8 @@ def parse_size(size_str: str) -> int:
     Parses a human-readable size string (e.g., '100MB', '2GB') into bytes.
     """
     size_str = size_str.strip().upper()
-    match = re.match(r'^(\d+(\.\d+)?)\s*(B|KB|MB|GB|TB)$', size_str)
+    match = re.match(r'^(\d+(\.\d+)?)\s*(B|KB|MB|GB|TB)
+, size_str)
     if not match:
         raise ValueError(
             f"Invalid size format: '{size_str}'. Use B, KB, MB, GB, TB.")
