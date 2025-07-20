@@ -1,4 +1,3 @@
-chore: Clean up temporary commit message file and add log file to gitignore
+docs: Update PLAN.md to reflect completed recycle bin feature
 
-- Removed the temporary commit message file.
-- Added `c_cleaner.log` to `.gitignore` to prevent it from being tracked.
+- Moved the recycle bin feature to a new 'completed' step in PLAN.md.
