@@ -1,4 +1,6 @@
-docs: Update PLAN.md and README.md for logging and error handling
+feat: Implement logging and enhance error handling
 
-- Added a new step in PLAN.md for integrating logging and enhancing error handling.
-- Updated README.md to reflect the upcoming logging feature.
+- Integrated Python's `logging` module for structured output.
+- Configured console output for INFO level and file output (`c_cleaner.log`) for DEBUG level.
+- Replaced `print` statements with `logger` calls across `c_cleaner.py`, `scanner.py`, `deleter.py`, and `exclusion_handler.py`.
+- Enhanced error handling in `scanner.py` and `deleter.py` to gracefully manage `PermissionError`, `FileNotFoundError`, and `OSError` during file operations, logging warnings/errors instead of crashing.

@@ -1,8 +1,11 @@
 import sys
+import logging
 from pathlib import Path
 from typing import Set, List
 
 from path_handler import normalize_path
+
+logger = logging.getLogger(__name__)
 
 
 def get_user_exclusions(cli_exclusions: List[str], config_filename: str) -> Set[str]:
@@ -13,7 +16,7 @@ def get_user_exclusions(cli_exclusions: List[str], config_filename: str) -> Set[
     config_exclusions = set()
     config_file = Path(config_filename)
     if config_file.is_file():
-        print(f"Found config file: '{config_filename}', loading exclusions...")
+        logger.info(f"Found config file: '{config_filename}', loading exclusions...")
         with config_file.open('r', encoding='utf-8') as f:
             for line in f:
                 path = line.strip()
@@ -44,7 +47,7 @@ def process_exclusions(
             final_exclusions_str.add(str(normalized_path).lower())
             validated_user_paths.add(normalized_path)
         else:
-            print(
-                f"Warning: Exclude path '{user_path_str}' from config or CLI is not a valid directory, ignoring.", file=sys.stderr)
+            logger.warning(
+                f"Exclude path '{user_path_str}' from config or CLI is not a valid directory, ignoring.")
 
     return final_exclusions_str, validated_user_paths

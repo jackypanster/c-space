@@ -1,5 +1,6 @@
 import sys
 import shutil
+import logging
 from pathlib import Path
 from typing import List, Tuple
 
@@ -10,6 +11,8 @@ except ImportError:
     sys.exit(1)
 
 from utils import format_size
+
+logger = logging.getLogger(__name__)
 
 
 def interactive_delete(files_to_process: List[Tuple[str, int]]):
@@ -24,13 +27,13 @@ def interactive_delete(files_to_process: List[Tuple[str, int]]):
     except OSError:
         terminal_width = 80
 
-    print("\n开始交互式删除...")
-    print("输入 'y' 删除, 'n' 或直接按 Enter 跳过, 'q' 退出。")
+    logger.info("\n开始交互式删除...")
+    logger.info("输入 'y' 删除, 'n' 或直接按 Enter 跳过, 'q' 退出。")
 
     for i, (path_str, size) in enumerate(files_to_process, 1):
         path = Path(path_str)
         if not path.exists():
-            print(f"> 警告: 文件 '{path}' 已不存在，自动跳过。")
+            logger.warning(f"文件 '{path}' 已不存在，自动跳过。")
             continue
 
         formatted_size = format_size(size)
@@ -45,17 +48,18 @@ def interactive_delete(files_to_process: List[Tuple[str, int]]):
         try:
             answer = input(prompt).lower().strip()
         except (KeyboardInterrupt, EOFError):
-            print("\n操作已取消。")
+            logger.info("\n操作已取消。")
             break
 
         if answer in ('y', 'yes'):
             try:
                 send2trash(path)
-                print("> 成功移至回收站。")
+                logger.info(f"> 成功将 '{path.name}' 移至回收站。")
             except Exception as e:
-                print(f"> 错误：删除 '{path.name}' 失败。原因: {e}")
+                logger.error(f"> 错误：删除 '{path.name}' 失败。原因: {e}")
         elif answer in ('q', 'quit'):
-            print("> 已退出删除流程。")
+            logger.info("> 已退出删除流程。")
             break
         else:
-            print("> 已跳过。")
+            logger.info("> 已跳过。")
+
