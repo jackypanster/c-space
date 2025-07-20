@@ -32,6 +32,7 @@ MANIFEST
 #  *.pyzw
 #  *.pyz
 *.spec
+c_cleaner.log
 
 ## Virtual Environments
 .env
