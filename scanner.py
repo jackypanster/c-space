@@ -6,24 +6,26 @@ from typing import List, Tuple, Set
 from utils import FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_SYSTEM
 
 
-def get_excluded_dirs(root_drive: str) -> Set[str]:
+def get_excluded_dirs(scan_path: str) -> Set[str]:
     """
     Gets a set of normalized, absolute paths for directories to be excluded.
+    These include system-defined environment variables and common un-scannable
+    directories on the root of the drive being scanned.
     """
     env_vars = [
         'windir', 'ProgramFiles', 'ProgramFiles(x86)',
         'ProgramData', 'APPDATA', 'LOCALAPPDATA'
     ]
-    # Use a set comprehension with the walrus operator (:=) for conciseness
     excluded_dirs = {
         os.path.normpath(p).lower()
         for v in env_vars if (p := os.environ.get(v))
     }
 
-    # Add other common system directories
-    root_drive = os.path.normpath(root_drive)
-    for d in ['$Recycle.Bin', 'System Volume Information', 'Config.Msi']:
-        excluded_dirs.add(os.path.join(root_drive, d).lower())
+    # Add other common system directories relative to the drive root of the scan path
+    drive_root = os.path.splitdrive(scan_path)[0] + os.path.sep
+    # Add common protected/system directories found at the drive root
+    for d in ['$Recycle.Bin', 'System Volume Information', 'Config.Msi', 'Recovery']:
+        excluded_dirs.add(os.path.join(drive_root, d).lower())
 
     return excluded_dirs
 
@@ -75,9 +77,9 @@ def scan_large_files(root_dir: str, min_size_bytes: int, excluded_dirs: Set[str]
 
             try:
                 file_path = os.path.join(root, filename)
-            s    stats = os.stat(file_path)
+                stats = os.stat(file_path)
 
-               if stats.st_file_attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM):
+                if stats.st_file_attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM):
                     continue
 
                 if stats.st_size >= min_size_bytes:

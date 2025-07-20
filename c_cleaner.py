@@ -1,6 +1,7 @@
 import argparse
 import sys
 import shutil
+import os
 
 from scanner import get_excluded_dirs, scan_large_files
 from utils import parse_size, format_size
@@ -42,18 +43,55 @@ def display_results(files_to_display: list, total_found: int):
         print(f"{str(i)+'.':<4}{formatted_size:<12}{display_path}")
 
 
+def _normalize_path(path_str: str) -> str:
+    r"""
+    Normalizes a path string, handling shell-specific formats for Windows.
+    - Converts MSYS/Git Bash paths (e.g., /d/folder) to Windows paths (D:\folder).
+    - Appends a trailing slash to root drives (e.g., C: -> C:\).
+    - Returns an absolute path.
+    """
+    # 0. Normalize slashes for Windows consistency, especially for mixed-env inputs
+    path_str = path_str.replace('/', '\\')
+
+    # 1. Handle MSYS/Git Bash style paths
+    if sys.platform == "win32" and path_str.startswith('\\'):
+        parts = path_str.split('\\')
+        if len(parts) > 1 and len(parts[1]) == 1 and parts[1].isalpha():
+            # Correctly form an absolute path from the drive letter, e.g., 'D:\'
+            drive = parts[1].upper() + ':\\'
+            path_str = os.path.join(drive, *parts[2:])
+
+    # 2. Handle root drive without slash
+    if len(path_str) == 2 and path_str[1] == ':' and path_str[0].isalpha():
+        path_str += os.path.sep
+
+    return os.path.abspath(path_str)
+
+
 def main():
     """
     Main function to orchestrate the file scanning and cleaning process.
     """
     parser = argparse.ArgumentParser(
-        description="Scan C: drive for large files and offer to delete them safely.",
+        description="Scan a specified drive or path for large files and offer to delete them safely.",
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('--min-size', type=str, default='50MB',
                         help="Minimum file size (e.g., '100MB', '1GB').\nDefault: 50MB")
     parser.add_argument('--top', type=int, default=20,
                         help="Number of largest files to display.\nDefault: 20")
+    parser.add_argument(
+        '--exclude',
+        nargs='+',
+        metavar='EXCLUDE_PATH',
+        default=[],
+        help="One or more additional directory paths to exclude from the scan.")
+    parser.add_argument(
+        'path',
+        nargs='?',
+        default='C:\\',
+        help="Path to scan (e.g., 'D:\\', 'C:\\Users').\nDefault: C:\\"
+    )
     args = parser.parse_args()
 
     try:
@@ -66,11 +104,49 @@ def main():
         print("Error: This tool is designed for Windows only.", file=sys.stderr)
         sys.exit(1)
 
-    scan_path = "C:\\"
+    # --- Path Processing ---
+    scan_path = _normalize_path(args.path)
+    if not os.path.isdir(scan_path):
+        print(
+            f"Error: The specified path '{scan_path}' does not exist or is not a directory.", file=sys.stderr)
+        sys.exit(1)
+
     print(f"Starting scan on {scan_path} for files > {args.min_size}...")
 
+    # --- Exclusion List Processing ---
+    # 1. Get system default exclusions
     excluded_dirs = get_excluded_dirs(scan_path)
-    print(f"Excluding {len(excluded_dirs)} key system/program directories.")
+
+    # 2. Load exclusions from config file `.cleaner_ignore`
+    config_file_path = '.cleaner_ignore'
+    config_exclusions = set()
+    if os.path.isfile(config_file_path):
+        print(
+            f"Found config file: '{config_file_path}', loading exclusions...")
+        with open(config_file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                path = line.strip()
+                if path and not path.startswith('#'):
+                    config_exclusions.add(path)
+
+    # 3. Combine CLI and config exclusions and validate them
+    all_user_paths = set(args.exclude) | config_exclusions
+    validated_user_exclusions = set()
+    for user_path in all_user_paths:
+        normalized_user_path = _normalize_path(user_path)
+        if os.path.isdir(normalized_user_path):
+            excluded_dirs.add(os.path.normpath(normalized_user_path).lower())
+            validated_user_exclusions.add(normalized_user_path)
+        else:
+            print(
+                f"Warning: Exclude path '{user_path}' from config or CLI is not a valid directory, ignoring.", file=sys.stderr)
+
+    print(
+        f"Excluding {len(excluded_dirs)} total directories (system defaults + user-defined).")
+    if validated_user_exclusions:
+        print("Active user-defined exclusions:")
+        for path in sorted(list(validated_user_exclusions)):
+            print(f"  - {path}")
 
     large_files = scan_large_files(scan_path, min_size_bytes, excluded_dirs)
 
