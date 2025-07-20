@@ -1,4 +1,5 @@
 import sys
+import io
 from pathlib import Path
 
 # New modular imports
@@ -17,6 +18,11 @@ def main():
     """
     Main function to orchestrate the file scanning and cleaning process.
     """
+    # --- 0. Configure Encoding for Windows ---
+    if sys.platform == "win32":
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
     # --- 1. Setup & Argument Parsing ---
     parser = setup_parser()
     args = parser.parse_args()

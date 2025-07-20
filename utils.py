@@ -13,8 +13,7 @@ def parse_size(size_str: str) -> int:
     Parses a human-readable size string (e.g., '100MB', '2GB') into bytes.
     """
     size_str = size_str.strip().upper()
-    match = re.match(r'^(\d+(\.\d+)?)\s*(B|KB|MB|GB|TB)
-, size_str)
+    match = re.match(r'^(\d+(\.\d+)?)\s*(B|KB|MB|GB|TB)$', size_str)
     if not match:
         raise ValueError(
             f"Invalid size format: '{size_str}'. Use B, KB, MB, GB, TB.")

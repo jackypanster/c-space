@@ -1,5 +1,4 @@
-refactor: Improve code quality
+fix: Resolve encoding and regex issues
 
-- Replace manual table formatting with the 'rich' library for better UI and simpler code.
-- Refactor all file path manipulations to use the modern 'pathlib' library instead of 'os.path'.
-- Centralize constants like the config filename into a single module.
+- Corrected a SyntaxError in `utils.py` related to an unterminated string literal in the regex pattern.
+- Added UTF-8 encoding configuration for stdout/stderr in `c_cleaner.py` to prevent UnicodeEncodeError on Windows.
